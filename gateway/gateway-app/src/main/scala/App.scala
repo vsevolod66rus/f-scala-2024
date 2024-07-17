@@ -4,17 +4,26 @@ import controllers.SomeController
 import models.configs.{AppConfig, ServerConfig}
 import repos.SomeRepo
 import services.SomeService
+
 import zio.http.Server
 import zio.logging.backend.SLF4J
-import zio.{ExitCode, IO, Runtime, ZIO, ZIOAppDefault, ZLayer}
-
+import zio.metrics.connectors.prometheus.{PrometheusPublisher, prometheusLayer, publisherLayer}
+import zio.{ExitCode, IO, Runtime, ZIO, ZIOAppDefault, ZLayer, durationInt}
+import zio.metrics.connectors.MetricsConfig
+import zio.metrics.jvm.DefaultJvmMetrics
 object App extends ZIOAppDefault {
 
-  private val loggerLayer = Runtime.removeDefaultLoggers >>> SLF4J.slf4j
+  private val loggerLayer   = Runtime.removeDefaultLoggers >>> SLF4J.slf4j
+  private val metricsConfig = ZLayer.succeed(MetricsConfig(1.seconds))
+  private val publisher     = DefaultJvmMetrics.live.orDie >+> ZLayer.make[PrometheusPublisher](
+    metricsConfig,
+    prometheusLayer,
+    publisherLayer
+  )
 
   private val httpApp = for {
     exampleApi <- ZIO.service[SomeController]
-    _          <- Server.serve(exampleApi.routes.withDefaultErrorResponse)
+    _          <- Server.serve(exampleApi.routes)
     exitCode   <- ZIO.never.exitCode
   } yield exitCode
 
@@ -35,6 +44,8 @@ object App extends ZIOAppDefault {
       SomeRepo.live,
       // Service
       SomeService.live,
+      // publisher
+      publisher,
       // Controller
       SomeController.live,
       // Server

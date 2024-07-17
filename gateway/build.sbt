@@ -5,14 +5,14 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.13.14"
 
 lazy val scalaFmtSettings = Seq(
-  scalafmtOnCompile := true,
+  scalafmtOnCompile      := true,
   scalafmtLogOnEachError := true
 )
 
 lazy val gatewayApp = (project in file("."))
   .in(file("gateway-app"))
   .settings(
-    name := "gateway-app",
+    name             := "gateway-app",
     idePackagePrefix := Some("ru.sskie.vpered")
   )
   .enablePlugins(JavaAppPackaging)
@@ -35,5 +35,6 @@ lazy val gatewayApp = (project in file("."))
     libraryDependencies += tapirCore,
     libraryDependencies ++= tapirServer,
     libraryDependencies ++= tapirCirce,
-    libraryDependencies ++= tapirZio
+    libraryDependencies ++= tapirZio,
+    libraryDependencies ++= metrics
   )
