@@ -36,5 +36,6 @@ lazy val gatewayApp = (project in file("."))
     libraryDependencies ++= tapirServer,
     libraryDependencies ++= tapirCirce,
     libraryDependencies ++= tapirZio,
-    libraryDependencies ++= metrics
+    libraryDependencies ++= metrics,
+    libraryDependencies += zioQuery
   )

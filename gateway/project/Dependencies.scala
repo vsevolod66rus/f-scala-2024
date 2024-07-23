@@ -24,6 +24,7 @@ object Dependencies {
 
   lazy val zio: ModuleID        = "dev.zio" %% "zio"         % zioVersion
   lazy val zioStreams: ModuleID = "dev.zio" %% "zio-streams" % zioVersion
+  lazy val zioQuery = "dev.zio" %% "zio-query" % "0.7.4"
 
   lazy val logging: Seq[ModuleID] = Seq(
     "dev.zio"                 %% "zio-logging-slf4j" % zioLoggingVersion,
