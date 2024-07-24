@@ -9,10 +9,16 @@ import zio._
 import zio.interop.catz._
 import zio.query._
 
+import java.util.concurrent.TimeUnit
+
 trait TestRepo {
   def withoutZQuery: Task[Unit]
 
   def withZQuery: Task[Unit]
+
+  def withoutZQueryOne2M: Task[Unit]
+
+  def withZQueryOne2M: Task[Unit]
 }
 
 object TestRepo {
@@ -28,6 +34,22 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
   } yield ()
 
   override def withZQuery: Task[Unit] = query.run.flatMap(names => ZIO.logInfo(s"withZQuery selected ${names.size}"))
+
+  override def withoutZQueryOne2M: Task[Unit] = for {
+    start <- Clock.currentTime(TimeUnit.MILLISECONDS)
+    ids   <- getAllUserDepartmentsIds
+    names <- ZIO.foreachPar(ids)(getDepartmentNameById)
+    _     <- ZIO.logInfo(s"withoutZQuery selected departments ${names.size}")
+    end <- Clock.currentTime(TimeUnit.MILLISECONDS)
+    _ = println(end - start)
+  } yield ()
+
+  override def withZQueryOne2M: Task[Unit] = for {
+    start <- Clock.currentTime(TimeUnit.MILLISECONDS)
+    _ <- queryDepartments.run.flatMap(names => ZIO.logInfo(s"withZQuery selected departments ${names.size}"))
+    end <- Clock.currentTime(TimeUnit.MILLISECONDS)
+    _ = println(end - start)
+  } yield ()
 
   private val query: ZQuery[Any, Throwable, List[String]] = for {
     ids   <- ZQuery.fromZIO(getAllUserIds)
@@ -62,12 +84,33 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
           case batch: Seq[GetUserName] =>
             val result: Task[List[(String, String)]] =
               // get multiple users at once e.g. SELECT id, name FROM users WHERE id IN ($ids)
-              batch.map(_.id).traverse(id => getUserNameById(id).map((id, _)))
+              batch.map(_.id).parTraverse(id => getUserNameById(id).map((id, _)))
 
             result.foldCause(
               CompletedRequestMap.failCause(requests, _),
               CompletedRequestMap.fromIterableWith(_)(kv => GetUserName(kv._1), kv => Exit.succeed(kv._2))
             )
         }
+
     }
+
+//  departments one department to many users
+  private def getAllUserDepartmentsIds: Task[List[String]] = {
+    val sql = sql"select department_id from hr.employees"
+    sql.query[String].to[List].transact(transactor.xa)
+  }
+
+  private def getDepartmentNameById(id: String): Task[String] = {
+    val sql = sql"select name from hr.departments where id::text = $id"
+    sql.query[String].unique.transact(transactor.xa)
+  }
+
+  case class GetDepartmentName(id: String) extends Request[Throwable, String]
+  val datasource: DataSource[Any, GetDepartmentName] =
+    DataSource.fromFunctionZIO("GetDepartmentName")((request: GetDepartmentName) => getDepartmentNameById(request.id))
+
+  private val queryDepartments: ZQuery[Any, Throwable, List[String]] = for {
+    ids   <- ZQuery.fromZIO(getAllUserDepartmentsIds)
+    names <- ZQuery.foreachPar(ids)(id => ZQuery.fromRequest(GetDepartmentName(id))(datasource)).map(_.toList)
+  } yield names
 }
