@@ -1,6 +1,7 @@
 package ru.sskie.vpered
 package repos
 
+import cats.data.NonEmptyList
 import cats.implicits._
 import doobie._
 import doobie.implicits._
@@ -66,6 +67,11 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
     sql.query[String].unique.transact(transactor.xa)
   }
 
+  private def getUserNameByIds(ids: NonEmptyList[String]): Task[List[(String, String)]] = {
+    val sql = sql"select id, full_name from hr.employees where ${Fragments.in(fr"id::text", ids)}"
+    sql.query[(String, String)].to[List].transact(transactor.xa)
+  }
+
   case class GetUserName(id: String) extends Request[Throwable, String]
 
   lazy val UserDataSource: DataSource.Batched[Any, GetUserName] =
@@ -84,7 +90,9 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
           case batch: Seq[GetUserName] =>
             val result: Task[List[(String, String)]] =
               // get multiple users at once e.g. SELECT id, name FROM users WHERE id IN ($ids)
-              batch.map(_.id).parTraverse(id => getUserNameById(id).map((id, _)))
+              NonEmptyList
+                .fromList(batch.map(_.id))
+                .fold(List.empty[(String, String)].pure[Task])(getUserNameByIds)
 
             result.foldCause(
               CompletedRequestMap.failCause(requests, _),
@@ -107,7 +115,7 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
 
   case class GetDepartmentName(id: String) extends Request[Throwable, String]
   val datasource: DataSource[Any, GetDepartmentName] =
-    DataSource.fromFunctionZIO("GetDepartmentName")((request: GetDepartmentName) => getDepartmentNameById(request.id))
+    DataSource.fromFunctionZIO("GetDepartmentName")(request => getDepartmentNameById(request.id))
 
   private val queryDepartments: ZQuery[Any, Throwable, List[String]] = for {
     ids   <- ZQuery.fromZIO(getAllUserDepartmentsIds)
