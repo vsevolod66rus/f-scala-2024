@@ -40,15 +40,15 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
     ids   <- getAllUserDepartmentsIds
     names <- ZIO.foreachPar(ids)(getDepartmentNameById)
     _     <- ZIO.logInfo(s"withoutZQuery selected departments ${names.size}")
-    end <- Clock.currentTime(TimeUnit.MILLISECONDS)
-    _ = println(end - start)
+    end   <- Clock.currentTime(TimeUnit.MILLISECONDS)
+    _      = println(end - start)
   } yield ()
 
   override def withZQueryOne2M: Task[Unit] = for {
     start <- Clock.currentTime(TimeUnit.MILLISECONDS)
-    _ <- queryDepartments.run.flatMap(names => ZIO.logInfo(s"withZQuery selected departments ${names.size}"))
-    end <- Clock.currentTime(TimeUnit.MILLISECONDS)
-    _ = println(end - start)
+    _     <- queryDepartments.run.flatMap(names => ZIO.logInfo(s"withZQuery selected departments ${names.size}"))
+    end   <- Clock.currentTime(TimeUnit.MILLISECONDS)
+    _      = println(end - start)
   } yield ()
 
   private val query: ZQuery[Any, Throwable, List[String]] = for {
