@@ -10,8 +10,6 @@ import zio._
 import zio.interop.catz._
 import zio.query._
 
-import java.util.concurrent.TimeUnit
-
 trait TestRepo {
   def withoutZQuery: Task[Unit]
 
@@ -37,20 +35,16 @@ final case class DadikRepoImpl(transactor: DBTransactor) extends TestRepo {
   override def withZQuery: Task[Unit] = query.run.flatMap(names => ZIO.logInfo(s"withZQuery selected ${names.size}"))
 
   override def withoutZQueryOne2M: Task[Unit] = for {
-    start <- Clock.currentTime(TimeUnit.MILLISECONDS)
     ids   <- getAllUserDepartmentsIds
     names <- ZIO.foreachPar(ids)(getDepartmentNameById)
     _     <- ZIO.logInfo(s"withoutZQuery selected departments ${names.size}")
-    end   <- Clock.currentTime(TimeUnit.MILLISECONDS)
-    _      = println(end - start)
   } yield ()
 
-  override def withZQueryOne2M: Task[Unit] = for {
-    start <- Clock.currentTime(TimeUnit.MILLISECONDS)
-    _     <- queryDepartments.run.flatMap(names => ZIO.logInfo(s"withZQuery selected departments ${names.size}"))
-    end   <- Clock.currentTime(TimeUnit.MILLISECONDS)
-    _      = println(end - start)
-  } yield ()
+  override def withZQueryOne2M: Task[Unit] =
+    for {
+      names <- queryDepartments.run
+      _     <- ZIO.logInfo(s"withZQuery selected departments ${names.size}")
+    } yield ()
 
   private val query: ZQuery[Any, Throwable, List[String]] = for {
     ids   <- ZQuery.fromZIO(getAllUserIds)
