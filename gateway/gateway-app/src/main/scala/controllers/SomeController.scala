@@ -1,8 +1,8 @@
 package ru.sskie.vpered
 package controllers
 
-import models.domain.SomeModel
-import services.SomeService
+import models.domain._
+import services.{AggregateUnitInfoService, SomeService}
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir.server.ziohttp.{ZioHttpInterpreter, ZioHttpServerOptions}
@@ -21,34 +21,49 @@ trait SomeController {
 }
 
 object SomeController {
-  val live: URLayer[PrometheusPublisher with SomeService, SomeController] =
+  val live: URLayer[PrometheusPublisher with SomeService with AggregateUnitInfoService, SomeController] =
     ZLayer.fromFunction(SomeControllerImpl.apply _)
 }
 
-final case class SomeControllerImpl(publisher: PrometheusPublisher, dadikService: SomeService) extends SomeController {
+final case class SomeControllerImpl(
+    publisher: PrometheusPublisher,
+    someService: SomeService,
+    aggregateUnitInfoService: AggregateUnitInfoService
+) extends SomeController {
 
-  private val baseEndpoint: PublicEndpoint[Unit, Unit, Unit, Any] = endpoint.in("api" / "v1")
+  private val tag                                                 = "Gateway"
+  private val baseEndpoint: PublicEndpoint[Unit, Unit, Unit, Any] = endpoint.in("api" / "v1").tag(tag)
 
   // test
   val testEndpoint =
-    baseEndpoint
-      .tag("Some")
-      .get
+    baseEndpoint.get
       .in("test")
       .in(path[String]("name"))
       .errorOut(stringBody)
       .out(jsonBody[SomeModel])
       .zServerLogic(name =>
         ZIO
-          .succeed(dadikService.simpleMethod(name))
+          .succeed(someService.simpleMethod(name))
+          .flatten
+          .mapError(t => t.toString)
+      )
+
+  // unit info
+  val unitEndpoint =
+    baseEndpoint.get
+      .in("unitInfo")
+      .in(path[String]("str"))
+      .errorOut(stringBody)
+      .out(jsonBody[AggregateUnitInfoDTO])
+      .zServerLogic(name =>
+        ZIO
+          .succeed(aggregateUnitInfoService.simpleMethod(name))
           .flatten
           .mapError(t => t.toString)
       )
 
   val metricEndpoint =
-    baseEndpoint
-      .tag("Some")
-      .get
+    baseEndpoint.get
       .in("metrics")
       .errorOut(stringBody)
       .out(stringBody)
@@ -59,10 +74,11 @@ final case class SomeControllerImpl(publisher: PrometheusPublisher, dadikService
     SwaggerInterpreter()
       .fromEndpoints[Task](
         List(
+          unitEndpoint.endpoint,
           testEndpoint.endpoint,
           metricEndpoint.endpoint
         ),
-        "Some",
+        tag,
         "1.0"
       )
 
@@ -80,6 +96,7 @@ final case class SomeControllerImpl(publisher: PrometheusPublisher, dadikService
   def routes: Routes[Any, Response] =
     ZioHttpInterpreter(serverOptions).toHttp(
       List(
+        unitEndpoint,
         testEndpoint,
         metricEndpoint
       ) ++ swaggerEndpoints

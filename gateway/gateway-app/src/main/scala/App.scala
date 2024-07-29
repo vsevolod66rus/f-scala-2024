@@ -3,12 +3,12 @@ package ru.sskie.vpered
 import controllers.SomeController
 import models.configs.{AppConfig, ServerConfig}
 import repos.SomeRepo
-import services.SomeService
+import services.{AggregateUnitInfoService, SomeService}
 
-import zio.http.Server
+import zio.http.{Client, Server, ZClient}
 import zio.logging.backend.SLF4J
 import zio.metrics.connectors.prometheus.{PrometheusPublisher, prometheusLayer, publisherLayer}
-import zio.{ExitCode, IO, Runtime, ZIO, ZIOAppDefault, ZLayer, durationInt}
+import zio.{ExitCode, IO, Runtime, ULayer, ZIO, ZIOAppDefault, ZLayer, durationInt}
 import zio.metrics.connectors.MetricsConfig
 import zio.metrics.jvm.DefaultJvmMetrics
 object App extends ZIOAppDefault {
@@ -42,8 +42,11 @@ object App extends ZIOAppDefault {
       AppConfig.allConfigs,
       // Repo
       SomeRepo.live,
+      // Client
+      ZClient.default,
       // Service
       SomeService.live,
+      AggregateUnitInfoService.live,
       // publisher
       publisher,
       // Controller
