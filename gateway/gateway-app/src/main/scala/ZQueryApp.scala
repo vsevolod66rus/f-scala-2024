@@ -11,8 +11,12 @@ object ZQueryApp extends ZIOAppDefault {
     repo <- ZIO.service[TestRepo]
 //    _    <- repo.withoutZQuery
 //    _    <- repo.withZQuery
-    _    <- repo.withoutZQueryOne2M
-    _    <- repo.withZQueryOne2M
+    _    <- repo.withoutZQueryOne2M.timed.map { case (time, _) =>
+              ZIO.logInfo(s"withoutZQuery millis time: ${time.toMillis}")
+            }
+    _    <- repo.withZQueryOne2M.timed.map { case (time, _) =>
+              ZIO.logInfo(s"withZQuery millis time: ${time.toMillis}")
+            }
   } yield ExitCode.success
 
   override def run: IO[Any, ExitCode] = mainApp
