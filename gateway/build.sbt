@@ -132,3 +132,25 @@ lazy val foodApp = (project in file("."))
     libraryDependencies ++= metrics,
     libraryDependencies += zioQuery
   )
+
+lazy val gqlStuff = (project in file("."))
+  .in(file("gql-stuff"))
+  .settings(
+    name             := "gql-stuff",
+    idePackagePrefix := Some("ru.sskie.vpered.gql")
+  )
+  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(GitVersioning)
+  .settings(scalaFmtSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.github.ghostdogpr"         %% "caliban"                       % "2.9.1",
+      "com.github.ghostdogpr"         %% "caliban-http4s"                % "2.9.1",
+      "com.github.ghostdogpr"         %% "caliban-client"                % "2.9.1",
+      "org.http4s"                    %% "http4s-blaze-server"           % "0.23.17",
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % "3.10.2",
+      "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"              % "1.11.13"
+    )
+  )
+  .enablePlugins(CalibanPlugin)
