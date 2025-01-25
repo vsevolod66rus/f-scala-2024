@@ -1,5 +1,5 @@
 package ru.sskie.vpered.gql
-package miners
+package tests
 
 import caliban.CalibanError.ValidationError
 import caliban._
@@ -48,7 +48,8 @@ object TestApp extends ZIOAppDefault {
       resolver     = Api4.resolver(dbService)
       api          = graphQL(RootResolver(resolver))
       interpreter <- api.interpreter
-      _           <- interpreter.execute(Query.orders)
+      sth         <- interpreter.execute(Query.orders)
+      _            = println(sth.data)
       dbHits      <- dbService.hits
       _           <- ZIO.debug(s"ZQuery with Batch - DB Hits: $dbHits")
     } yield 0

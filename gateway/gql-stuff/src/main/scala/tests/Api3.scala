@@ -1,7 +1,7 @@
 package ru.sskie.vpered.gql
-package miners
+package tests
 
-import example.Data._
+import tests.Data._
 
 import zio.query.{DataSource, Request, ZQuery}
 
@@ -35,17 +35,20 @@ object Api3 {
 
     def getOrders(count: Int): MyQuery[List[OrderView]] =
       ZQuery
-        .fromZIO(dbService.getLastOrders(count))
-        .map(_.map(order => OrderView(order.id, getCustomer(order.customerId), getProducts(order.products))))
-
-    def getProducts(products: List[(ProductId, Int)]): List[ProductOrderView] =
-      products.map { case (productId, quantity) =>
-        ProductOrderView(
-          productId,
-          getProduct(productId).map(p => ProductDetailsView(p.name, p.description, getBrand(p.brandId))),
-          quantity
-        )
-      }
+//        .fromZIO(dbService.getLastOrders(count))
+        .fromZIO(dbService.getLastOrdersReality(count))
+        .map { orders =>
+          orders.map { order =>
+            val products = order.productsQuantity.map { productQuantity =>
+              val products: MyQuery[ProductDetailsView] = getProduct(productQuantity.id).map { p =>
+                val brand: MyQuery[Brand] = getBrand(p.brandId)
+                ProductDetailsView(p.name, p.description, brand)
+              }
+              ProductOrderView(productQuantity.id, products, productQuantity.quantity)
+            }
+            OrderView(order.id, getCustomer(order.customerId), products)
+          }
+        }
 
     Query(args => getOrders(args.count))
   }

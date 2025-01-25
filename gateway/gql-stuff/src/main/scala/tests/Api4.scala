@@ -1,14 +1,14 @@
 package ru.sskie.vpered.gql
-package miners
+package tests
 
-import example.Data._
+import tests.Data._
 
 import zio.Chunk
 import zio.query.{DataSource, Request, ZQuery}
 
 object Api4 {
 
-  type MyQuery[+A] = ZQuery[Any, Nothing, A]
+  type MyQuery[A] = ZQuery[Any, Nothing, A]
 
   case class QueryArgs(count: Int)
   case class Query(orders: QueryArgs => MyQuery[List[OrderView]])
@@ -43,10 +43,10 @@ object Api4 {
     def getOrders(count: Int): MyQuery[List[OrderView]] =
       ZQuery
         .fromZIO(dbService.getLastOrders(count))
-        .map(_.map(order => OrderView(order.id, getCustomer(order.customerId), getProducts(order.products))))
+        .map(_.map(order => OrderView(order.id, getCustomer(order.customerId), getProducts(order.productsQuantity))))
 
-    def getProducts(products: List[(ProductId, Int)]): List[ProductOrderView] =
-      products.map { case (productId, quantity) =>
+    def getProducts(products: List[ProductQuantity]): List[ProductOrderView] =
+      products.map { case ProductQuantity(productId, quantity) =>
         ProductOrderView(
           productId,
           getProduct(productId).map(p => ProductDetailsView(p.name, p.description, getBrand(p.brandId))),
