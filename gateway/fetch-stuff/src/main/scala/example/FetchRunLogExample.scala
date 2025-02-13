@@ -1,5 +1,6 @@
 package example
 
+import cats.Parallel
 import cats.effect.{Concurrent, ExitCode, IO, IOApp}
 import cats.implicits.catsSyntaxOptionId
 import fetch.{Data, DataCache, DataSource, Fetch, InMemoryCache}
@@ -56,6 +57,10 @@ object FetchRunLogExample extends IOApp {
       value3again <- Fetch(3, dataSource3)
     } yield List(value1, value2, value3, value1again, value2again, value3again)
 
+  val queryApplicative1: Fetch[IO, (String, String)]                    = (Fetch(1, dataSource1), Fetch(2, dataSource2)).tupled
+  val queryApplicative2: Fetch[IO, (String, String)]                    = (Fetch(1, dataSource1), Fetch(3, dataSource3)).tupled
+  val queryApplicative: Fetch[IO, ((String, String), (String, String))] = (queryApplicative1, queryApplicative2).tupled
+
   override def run(args: List[String]): IO[ExitCode] =
     for {
 //      res             <- Fetch.run(query, cache = InMemoryCache.empty[IO])
@@ -63,5 +68,7 @@ object FetchRunLogExample extends IOApp {
       _                = println(cacheWithResult._2)
       runLog          <- Fetch.runLog(query, cacheWithResult._1) // (Log, A)
       _                = runLog._1.rounds.foreach(println)
+
+      _ <- Fetch.run(queryApplicative) // only 1 hit 1
     } yield ExitCode.Success
 }
