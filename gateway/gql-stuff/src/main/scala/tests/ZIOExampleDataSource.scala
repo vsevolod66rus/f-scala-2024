@@ -6,7 +6,7 @@ import zio.{ExitCode, IO, ZIO, ZIOAppDefault, durationInt}
 
 import java.util.concurrent.TimeUnit
 
-object ZIONormExampleDataSource extends ZIOAppDefault {
+object ZIOExampleDataSource extends ZIOAppDefault {
 
   def getFooById(id: Int) = for {
     _ <- ZIO.sleep(1.second)
