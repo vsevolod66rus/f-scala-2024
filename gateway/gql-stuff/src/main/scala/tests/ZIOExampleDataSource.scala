@@ -46,6 +46,7 @@ object ZIOExampleDataSource extends ZIOAppDefault {
       clock <- ZIO.clock
       t1 <- clock.currentTime(TimeUnit.MILLISECONDS)
       res <- query.run // foo hit 1, но как будто из кеша
+//      res <- query.runCache(cache = ) // TODO
       t2 <- clock.currentTime(TimeUnit.MILLISECONDS)
       _ <- ZIO.debug(s"res=$res")
       _ <- ZIO.debug(t2 - t1)

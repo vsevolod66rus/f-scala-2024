@@ -37,6 +37,7 @@ object ZIOBaseExample extends ZIOAppDefault {
   def getUserNameByIdQuery(id: Int): ZQuery[Any, Throwable, String] =
     ZQuery.fromRequest(GetUserName(id))(UserDataSource)
 
+  //ZIO Query detects parts of composite queries that can be executed in parallel without changing the semantics of the query.
   val query: ZQuery[Any, Throwable, List[String]] =
     for {
       ids   <- ZQuery.fromZIO(getUserIds)
