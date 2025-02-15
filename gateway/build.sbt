@@ -13,7 +13,8 @@ lazy val gatewayApp = (project in file("."))
   .in(file("gateway-app"))
   .settings(
     name             := "gateway-app",
-    idePackagePrefix := Some("ru.sskie.vpered")
+    idePackagePrefix := Some("ru.sskie.vpered"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(BuildInfoPlugin)
@@ -137,7 +138,8 @@ lazy val gqlStuff = (project in file("."))
   .in(file("gql-stuff"))
   .settings(
     name             := "gql-stuff",
-    idePackagePrefix := Some("ru.sskie.vpered.gql")
+    idePackagePrefix := Some("ru.sskie.vpered.gql"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(BuildInfoPlugin)
@@ -160,7 +162,8 @@ lazy val fetchStuff = (project in file("."))
   .in(file("fetch-stuff"))
   .settings(
     name             := "getch-stuff",
-    idePackagePrefix := Some("ru.sskie.vpered.fetch")
+    idePackagePrefix := Some("ru.sskie.vpered.fetch"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(BuildInfoPlugin)
