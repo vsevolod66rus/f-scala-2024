@@ -4,14 +4,22 @@ package tests
 import zio._
 import zio.query._
 
-object ZIOBaseExample extends ZIOAppDefault {
+object A_ZIOBaseExample extends ZIOAppDefault {
 
-  def getUserIds: Task[List[Int]]                                  =
-    ZIO.succeed(List(1, 2, 3))
-  def getUserNameById(id: Int): Task[String]                       =
-    ZIO.succeed(s"user name for id=$id")
+  def getUserIds: Task[List[Int]] =
+    ZIO
+      .succeed(List(1, 2, 3))
+      .debug("hit getUserIds")
+
+  def getUserNameById(id: Int): Task[String] =
+    ZIO
+      .succeed(s"user name for id = $id")
+      .debug("hit getUserNameById")
+
   def getUserNamesByIds(ids: List[Int]): Task[List[(Int, String)]] =
-    ZIO.succeed(ids.map(id => (id, s"user name for id=$id")))
+    ZIO
+      .succeed(ids.map(id => (id, s"user name for id = $id")))
+      .debug("hit getUserNamesByIds")
 
   case class GetUserName(id: Int) extends Request[Throwable, String]
 
@@ -37,11 +45,12 @@ object ZIOBaseExample extends ZIOAppDefault {
   def getUserNameByIdQuery(id: Int): ZQuery[Any, Throwable, String] =
     ZQuery.fromRequest(GetUserName(id))(UserDataSource)
 
-  //ZIO Query detects parts of composite queries that can be executed in parallel without changing the semantics of the query.
+  /* ZIO Query detects parts of composite queries that can be executed in parallel without changing the semantics of the
+   * query. */
   val query: ZQuery[Any, Throwable, List[String]] =
     for {
       ids   <- ZQuery.fromZIO(getUserIds)
-      names <- ZQuery.foreachPar(ids)(id => getUserNameByIdQuery(id)) /* будет параллельно без изменения семантики */
+      names <- ZQuery.foreachPar(ids)(id => getUserNameByIdQuery(id))
     } yield names
 
   // withoutQuery:
@@ -55,8 +64,7 @@ object ZIOBaseExample extends ZIOAppDefault {
 
   override def run: IO[Any, ExitCode] =
     for {
-      //      res <- effect
       res <- query.run
-      _   <- ZIO.debug(s"res=$res")
+      _   <- ZIO.debug(s"res = $res")
     } yield ExitCode.success
 }

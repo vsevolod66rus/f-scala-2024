@@ -5,7 +5,7 @@ import zio.{ExitCode, IO, ZIO, ZIOAppDefault, durationInt}
 
 import java.util.concurrent.TimeUnit
 
-object ZIOExampleApplicativeCustomCache extends ZIOAppDefault {
+object B_ZIOExampleApplicativeCustomCache extends ZIOAppDefault {
 
   def getFooById(id: Int) = for {
     _ <- ZIO.debug(s"hit foo id=$id")
@@ -49,9 +49,11 @@ object ZIOExampleApplicativeCustomCache extends ZIOAppDefault {
       clock <- ZIO.clock
       t1    <- clock.currentTime(TimeUnit.MILLISECONDS)
       res   <- effectApplicative
+
 //      res   <- effectMonad //proof cache works
-      t2    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      _     <- ZIO.debug(s"res = $res")
-      _     <- ZIO.debug(s"execution time = ${t2 - t1} millis")
+
+      t2 <- clock.currentTime(TimeUnit.MILLISECONDS)
+      _  <- ZIO.debug(s"res = $res")
+      _  <- ZIO.debug(s"execution time = ${t2 - t1} millis")
     } yield ExitCode.success
 }
