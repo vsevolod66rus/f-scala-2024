@@ -35,9 +35,9 @@ object ZIOExampleApplicativeCustomCache extends ZIOAppDefault {
   def getBazCached(id: Int) =
     simpleBazCache.get(id).fold(getBazById(id))(ZIO.succeed(_).debug(s"from cache foo id=$id"))
 
-  def fooBarApplicative  = getFooCached(1).zipPar(getBarCached(1))
-  def fooBazApplicative  = getFooCached(1).zipPar(getBazCached(1))
-  def effectApplicatoive = fooBarApplicative.zipPar(fooBazApplicative)
+  def fooBarApplicative = getFooCached(1).zipPar(getBarCached(1))
+  def fooBazApplicative = getFooCached(1).zipPar(getBazCached(1))
+  def effectApplicative = fooBarApplicative.zipPar(fooBazApplicative)
 
   def effectMonad = for {
     res1 <- fooBarApplicative
@@ -48,10 +48,10 @@ object ZIOExampleApplicativeCustomCache extends ZIOAppDefault {
     for {
       clock <- ZIO.clock
       t1    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      res   <- effectApplicatoive
+      res   <- effectApplicative
 //      res   <- effectMonad //proof cache works
       t2    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      _     <- ZIO.debug(s"res=$res")
-      _     <- ZIO.debug(t2 - t1)
+      _     <- ZIO.debug(s"res = $res")
+      _     <- ZIO.debug(s"execution time = ${t2 - t1} millis")
     } yield ExitCode.success
 }
