@@ -1,10 +1,9 @@
 package ru.sskie.vpered.gql
 package tests
 
-import zio.query.{DataSource, Request, ZQuery}
-import zio.{ExitCode, IO, ZIO, ZIOAppDefault, durationInt}
-
-import java.util.concurrent.TimeUnit
+import zio._
+import zio.query._
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 object ZIOQueryApplicativeDeduplication extends ZIOAppDefault {
 
@@ -40,12 +39,46 @@ object ZIOQueryApplicativeDeduplication extends ZIOAppDefault {
   def queryFooBaz = getFooByIdQuery(1).zipPar(getBazByIdQuery(3))
   def query       = queryFooBar.zipPar(queryFooBaz)
 
+  class CustomCache(private val map: ConcurrentHashMap[Request[_, _], Promise[_, _]]) extends Cache {
+
+    def get[E, A](request: Request[E, A])(implicit trace: Trace): IO[Unit, Promise[E, A]] =
+      ZIO.suspendSucceed {
+        val out = map.get(request).asInstanceOf[Promise[E, A]]
+        val getF = if (out eq null) Exit.fail(()) else Exit.succeed(out)
+        ZIO.log(s"CustomCache.get for $request") *> getF
+      }
+
+    def lookup[E, A, B](request: A)(implicit
+                                    ev: A <:< Request[E, B],
+                                    trace: Trace
+    ): UIO[Either[Promise[E, B], Promise[E, B]]] =
+      ZIO.succeed(lookupUnsafe[E, String, B](request)(Unsafe.unsafe(identity)))
+
+
+    def lookupUnsafe[E, A, B](request: Request[_, _])(implicit
+                                                      unsafe: Unsafe
+    ): Either[Promise[E, B], Promise[E, B]] = {
+      val newPromise = Promise.unsafe.make[E, B](FiberId.None)
+//      val isContains1   = map.contains(request)
+      val existing   = map.putIfAbsent(request, newPromise).asInstanceOf[Promise[E, B]]
+//      if (isContains1) println(s"CustomCache.lookup-none for $request") else println(s"CustomCache.lookup-put for $request")
+      if (existing eq null) Left(newPromise) else Right(existing)
+    }
+
+    def put[E, A](request: Request[E, A], result: Promise[E, A])(implicit trace: Trace): UIO[Unit] =
+      ZIO.log(s"CustomCache.put for $request") *> ZIO.succeed(map.put(request, result))
+
+    def remove[E, A](request: Request[E, A])(implicit trace: Trace): UIO[Unit] =
+      ZIO.log(s"CustomCache.remove for $request") *> ZIO.succeed(map.remove(request))
+  }
+
   override def run: IO[Any, ExitCode] =
     for {
       clock <- ZIO.clock
       t1    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      res   <- query.run // foo hit 1, но как будто из кеша
-//      res <- query.runCache(cache = ) // TODO
+//      res   <- query.run // foo hit 1, но как будто из кеша
+      customCache = new CustomCache(new ConcurrentHashMap())
+      res <- query.runCache(cache = customCache)
       t2    <- clock.currentTime(TimeUnit.MILLISECONDS)
       _     <- ZIO.debug(s"res=$res")
       _     <- ZIO.debug(t2 - t1)
