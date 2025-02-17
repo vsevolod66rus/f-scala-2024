@@ -1,6 +1,5 @@
 package example
 
-import cats.Parallel
 import cats.effect.{Concurrent, ExitCode, IO, IOApp}
 import cats.implicits.catsSyntaxOptionId
 import fetch.{Data, DataCache, DataSource, Fetch, InMemoryCache}
@@ -64,10 +63,10 @@ object FetchRunLogExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     for {
 //      res             <- Fetch.run(query, cache = InMemoryCache.empty[IO])
-      cacheWithResult <- Fetch.runCache(query)                   // (DataCache[F], A)
-      _                = println(cacheWithResult._2)
-      runLog          <- Fetch.runLog(query, cacheWithResult._1) // (Log, A)
-      _                = runLog._1.rounds.foreach(println)
+      (cache, res1) <- Fetch.runCache(query)      // (DataCache[F], A)
+      _              = println(res1)
+      (log, res2)   <- Fetch.runLog(query, cache) // (Log, A)
+      _              = log.rounds.foreach(println)
 
       _ <- Fetch.run(queryApplicative) // only 1 hit 1
     } yield ExitCode.Success
