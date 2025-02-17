@@ -20,23 +20,8 @@ object B_ZIOExampleApplicativeCustomCache extends ZIOAppDefault {
     _ <- ZIO.sleep(1.second)
   } yield s"baz id=$id"
 
-  var simpleFooCache = Map.empty[Int, String]
-  var simpleBarCache = Map.empty[Int, String]
-  var simpleBazCache = Map.empty[Int, String]
-
-  def getFooCached(id: Int) =
-    simpleFooCache
-      .get(id)
-      .fold(getFooById(id).tap(res => ZIO.succeed { simpleFooCache = simpleFooCache.updated(id, res) }))(
-        ZIO.succeed(_).debug(s"from cache foo id=$id")
-      )
-  def getBarCached(id: Int) =
-    simpleBarCache.get(id).fold(getBarById(id))(ZIO.succeed(_).debug(s"from cache foo id=$id"))
-  def getBazCached(id: Int) =
-    simpleBazCache.get(id).fold(getBazById(id))(ZIO.succeed(_).debug(s"from cache foo id=$id"))
-
-  def fooBarApplicative = getFooCached(1).zipPar(getBarCached(1))
-  def fooBazApplicative = getFooCached(1).zipPar(getBazCached(1))
+  def fooBarApplicative = getFooById(1).zipPar(getBarById(1))
+  def fooBazApplicative = getFooById(1).zipPar(getBazById(1))
   def effectApplicative = fooBarApplicative.zipPar(fooBazApplicative)
 
   def effectMonad = for {
