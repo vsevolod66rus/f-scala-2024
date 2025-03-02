@@ -29,9 +29,7 @@ class DBService(dbHits: Ref[Int]) {
     dbHits.update(_ + 1).as {
       val rand = scala.util.Random
       List.range(0, count).map { id =>
-        Order(id, rand.nextInt(), List(
-          ProductQuantity(rand.nextInt(), 1),
-          ProductQuantity(rand.nextInt(), 1)))
+        Order(id, rand.nextInt(), List(ProductQuantity(rand.nextInt(), 1), ProductQuantity(rand.nextInt(), 1)))
       }
     }
 

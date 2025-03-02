@@ -42,7 +42,7 @@ object Api4 {
 
     def getOrders(count: Int): MyQuery[List[OrderView]] =
       ZQuery
-        .fromZIO(dbService.getLastOrders(count))
+        .fromZIO(dbService.getLastOrdersReality(count))
         .map(_.map(order => OrderView(order.id, getCustomer(order.customerId), getProducts(order.productsQuantity))))
 
     def getProducts(products: List[ProductQuantity]): List[ProductOrderView] =

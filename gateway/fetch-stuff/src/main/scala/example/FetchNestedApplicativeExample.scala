@@ -58,10 +58,9 @@ object FetchNestedApplicativeExample extends IOApp {
     for {
 //      res <- Fetch.run(queryApplicative)
       (cache, res) <- Fetch.runCache(queryApplicative) // only 1 hit 1, but takes from cache
-      _    = println(res)
-      resMonad <- Fetch.run(queryMonad)
-      _ = println(resMonad)
-      _ <- cache.lookup()
+      _             = println(res)
+      resMonad     <- Fetch.run(queryMonad)
+      _             = println(resMonad)
     } yield ExitCode.Success
 
 }

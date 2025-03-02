@@ -43,20 +43,19 @@ object ZIOQueryApplicativeDeduplication extends ZIOAppDefault {
 
     def get[E, A](request: Request[E, A])(implicit trace: Trace): IO[Unit, Promise[E, A]] =
       ZIO.suspendSucceed {
-        val out = map.get(request).asInstanceOf[Promise[E, A]]
+        val out  = map.get(request).asInstanceOf[Promise[E, A]]
         val getF = if (out eq null) Exit.fail(()) else Exit.succeed(out)
         ZIO.log(s"CustomCache.get for $request") *> getF
       }
 
     def lookup[E, A, B](request: A)(implicit
-                                    ev: A <:< Request[E, B],
-                                    trace: Trace
+        ev: A <:< Request[E, B],
+        trace: Trace
     ): UIO[Either[Promise[E, B], Promise[E, B]]] =
       ZIO.succeed(lookupUnsafe[E, String, B](request)(Unsafe.unsafe(identity)))
 
-
     def lookupUnsafe[E, A, B](request: Request[_, _])(implicit
-                                                      unsafe: Unsafe
+        unsafe: Unsafe
     ): Either[Promise[E, B], Promise[E, B]] = {
       val newPromise = Promise.unsafe.make[E, B](FiberId.None)
 //      val isContains1   = map.contains(request)
@@ -74,13 +73,13 @@ object ZIOQueryApplicativeDeduplication extends ZIOAppDefault {
 
   override def run: IO[Any, ExitCode] =
     for {
-      clock <- ZIO.clock
-      t1    <- clock.currentTime(TimeUnit.MILLISECONDS)
+      clock      <- ZIO.clock
+      t1         <- clock.currentTime(TimeUnit.MILLISECONDS)
 //      res   <- query.run // foo hit 1, но как будто из кеша
       customCache = new CustomCache(new ConcurrentHashMap())
-      res <- query.runCache(cache = customCache)
-      t2    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      _     <- ZIO.debug(s"res=$res")
-      _     <- ZIO.debug(t2 - t1)
+      res        <- query.runCache(cache = customCache)
+      t2         <- clock.currentTime(TimeUnit.MILLISECONDS)
+      _          <- ZIO.debug(s"res=$res")
+      _          <- ZIO.debug(t2 - t1)
     } yield ExitCode.success
 }

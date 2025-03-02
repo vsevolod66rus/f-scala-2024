@@ -11,6 +11,9 @@ object D_ZIOBatchedCacheExample extends ZIOAppDefault {
       .debug(s"hit getUserNamesByIds with id = $ids")
       .map(_ => ids.map(id => (id, s"user name for id = $id")))
 
+  // типа SELECT id, name FROM users WHERE id IN ($ids)
+
+
   case class GetUserName(id: Int) extends Request[Throwable, String]
 
   val UserDataSourceBatched: DataSource[Any, GetUserName] =
