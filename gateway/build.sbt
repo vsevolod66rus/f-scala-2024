@@ -41,99 +41,6 @@ lazy val gatewayApp = (project in file("."))
     libraryDependencies += zioQuery
   )
 
-lazy val staffApp = (project in file("."))
-  .in(file("staff-app"))
-  .settings(
-    name             := "staff-app",
-    idePackagePrefix := Some("ru.sskie.vpered.staff")
-  )
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(BuildInfoPlugin)
-  .enablePlugins(GitVersioning)
-  .settings(scalaFmtSettings)
-  .settings(
-    libraryDependencies += zio,
-    libraryDependencies += zioStreams,
-    libraryDependencies ++= zioConfig,
-    libraryDependencies ++= logging,
-    libraryDependencies ++= circe,
-    libraryDependencies ++= monocle,
-    libraryDependencies ++= doobie,
-    libraryDependencies += cats3Interop,
-    libraryDependencies += pgDriver,
-    libraryDependencies += chimney,
-    libraryDependencies += h2,
-    libraryDependencies ++= circe,
-    libraryDependencies += tapirCore,
-    libraryDependencies ++= tapirServer,
-    libraryDependencies ++= tapirCirce,
-    libraryDependencies ++= tapirZio,
-    libraryDependencies ++= metrics,
-    libraryDependencies += zioQuery
-  )
-
-lazy val techApp = (project in file("."))
-  .in(file("tech-app"))
-  .settings(
-    name             := "tech-app",
-    idePackagePrefix := Some("ru.sskie.vpered.tech")
-  )
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(BuildInfoPlugin)
-  .enablePlugins(GitVersioning)
-  .settings(scalaFmtSettings)
-  .settings(
-    libraryDependencies += zio,
-    libraryDependencies += zioStreams,
-    libraryDependencies ++= zioConfig,
-    libraryDependencies ++= logging,
-    libraryDependencies ++= circe,
-    libraryDependencies ++= monocle,
-    libraryDependencies ++= doobie,
-    libraryDependencies += cats3Interop,
-    libraryDependencies += pgDriver,
-    libraryDependencies += chimney,
-    libraryDependencies += h2,
-    libraryDependencies ++= circe,
-    libraryDependencies += tapirCore,
-    libraryDependencies ++= tapirServer,
-    libraryDependencies ++= tapirCirce,
-    libraryDependencies ++= tapirZio,
-    libraryDependencies ++= metrics,
-    libraryDependencies += zioQuery
-  )
-
-lazy val foodApp = (project in file("."))
-  .in(file("food-app"))
-  .settings(
-    name             := "food-app",
-    idePackagePrefix := Some("ru.sskie.vpered.food")
-  )
-  .enablePlugins(JavaAppPackaging)
-  .enablePlugins(BuildInfoPlugin)
-  .enablePlugins(GitVersioning)
-  .settings(scalaFmtSettings)
-  .settings(
-    libraryDependencies += zio,
-    libraryDependencies += zioStreams,
-    libraryDependencies ++= zioConfig,
-    libraryDependencies ++= logging,
-    libraryDependencies ++= circe,
-    libraryDependencies ++= monocle,
-    libraryDependencies ++= doobie,
-    libraryDependencies += cats3Interop,
-    libraryDependencies += pgDriver,
-    libraryDependencies += chimney,
-    libraryDependencies += h2,
-    libraryDependencies ++= circe,
-    libraryDependencies += tapirCore,
-    libraryDependencies ++= tapirServer,
-    libraryDependencies ++= tapirCirce,
-    libraryDependencies ++= tapirZio,
-    libraryDependencies ++= metrics,
-    libraryDependencies += zioQuery
-  )
-
 lazy val gqlStuff = (project in file("."))
   .in(file("gql-stuff"))
   .settings(
@@ -161,7 +68,7 @@ lazy val gqlStuff = (project in file("."))
 lazy val fetchStuff = (project in file("."))
   .in(file("fetch-stuff"))
   .settings(
-    name             := "getch-stuff",
+    name             := "fetch-stuff",
     idePackagePrefix := Some("ru.sskie.vpered.fetch"),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
