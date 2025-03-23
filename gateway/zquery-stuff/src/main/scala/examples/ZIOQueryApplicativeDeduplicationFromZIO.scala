@@ -31,7 +31,7 @@ object ZIOQueryApplicativeDeduplicationFromZIO extends ZIOAppDefault {
     for {
       clock <- ZIO.clock
       t1    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      res   <- query.run //no deduplication because no cache
+      res   <- query.run // no deduplication because no cache
       t2    <- clock.currentTime(TimeUnit.MILLISECONDS)
       _     <- ZIO.debug(s"res=$res")
       _     <- ZIO.debug(t2 - t1)
