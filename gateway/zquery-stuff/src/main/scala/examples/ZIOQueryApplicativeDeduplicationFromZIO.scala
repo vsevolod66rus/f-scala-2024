@@ -1,5 +1,5 @@
-package ru.sskie.vpered.gql
-package tests
+package ru.sskie.vpered.zquery
+package examples
 
 import zio.query.{DataSource, Request, ZQuery}
 import zio.{ExitCode, IO, ZIO, ZIOAppDefault, durationInt}
@@ -31,7 +31,7 @@ object ZIOQueryApplicativeDeduplicationFromZIO extends ZIOAppDefault {
     for {
       clock <- ZIO.clock
       t1    <- clock.currentTime(TimeUnit.MILLISECONDS)
-      res   <- query.run
+      res   <- query.run //no deduplication because no cache
       t2    <- clock.currentTime(TimeUnit.MILLISECONDS)
       _     <- ZIO.debug(s"res=$res")
       _     <- ZIO.debug(t2 - t1)

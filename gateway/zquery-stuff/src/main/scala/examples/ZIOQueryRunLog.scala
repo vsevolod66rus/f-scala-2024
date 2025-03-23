@@ -1,5 +1,5 @@
-package ru.sskie.vpered.gql
-package tests
+package ru.sskie.vpered.zquery
+package examples
 
 import zio.{ExitCode, FiberRef, IO, Unsafe, ZIO, ZIOAppDefault}
 import zio.query.{Cache, DataSource, Request, ZQuery}

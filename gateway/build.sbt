@@ -9,11 +9,11 @@ lazy val scalaFmtSettings = Seq(
   scalafmtLogOnEachError := true
 )
 
-lazy val gatewayApp = (project in file("."))
-  .in(file("gateway-app"))
+lazy val zqueryStuff = (project in file("."))
+  .in(file("zquery-stuff"))
   .settings(
-    name             := "gateway-app",
-    idePackagePrefix := Some("ru.sskie.vpered"),
+    name             := "zquery-stuff",
+    idePackagePrefix := Some("ru.sskie.vpered.zquery"),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
   .enablePlugins(JavaAppPackaging)
@@ -21,25 +21,9 @@ lazy val gatewayApp = (project in file("."))
   .enablePlugins(GitVersioning)
   .settings(scalaFmtSettings)
   .settings(
-    libraryDependencies += zio,
-    libraryDependencies += zioStreams,
-    libraryDependencies ++= zioConfig,
-    libraryDependencies ++= logging,
-    libraryDependencies ++= circe,
-    libraryDependencies ++= monocle,
-    libraryDependencies ++= doobie,
-    libraryDependencies += cats3Interop,
-    libraryDependencies += pgDriver,
-    libraryDependencies += chimney,
-    libraryDependencies += h2,
-    libraryDependencies ++= circe,
-    libraryDependencies += tapirCore,
-    libraryDependencies ++= tapirServer,
-    libraryDependencies ++= tapirCirce,
-    libraryDependencies ++= tapirZio,
-    libraryDependencies ++= metrics,
     libraryDependencies += zioQuery
   )
+  .enablePlugins(CalibanPlugin)
 
 lazy val gqlStuff = (project in file("."))
   .in(file("gql-stuff"))

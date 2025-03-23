@@ -1,5 +1,5 @@
-package ru.sskie.vpered.gql
-package tests
+package ru.sskie.vpered.zquery
+package examples
 
 import zio.{ExitCode, IO, ZIO, ZIOAppDefault, durationInt}
 

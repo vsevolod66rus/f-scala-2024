@@ -1,5 +1,5 @@
-package ru.sskie.vpered.gql
-package tests
+package ru.sskie.vpered.zquery
+package examples
 
 import zio._
 import zio.query._
@@ -29,13 +29,13 @@ object D_ZIOBatchedCacheExample extends ZIOAppDefault {
       names <- ZQuery.foreachPar(ids)(id => getUserNameByIdQuery(id))
     } yield names
 
-  val query3to8: ZQuery[Any, Throwable, List[String]] =
+  val query3to7: ZQuery[Any, Throwable, List[String]] =
     for {
       ids   <- ZQuery.succeed(List(3, 4, 5, 6, 7))
       names <- ZQuery.foreachPar(ids)(id => getUserNameByIdQuery(id))
     } yield names
 
-  val query = query1to5.zip(query3to8)
+  val query = query1to5.zip(query3to7)
 
   override def run: IO[Any, ExitCode] =
     for {

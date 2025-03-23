@@ -1,15 +1,17 @@
 package ru.sskie.vpered.fetch
 package example
 
-import cats.effect.{Concurrent, ExitCode, IO, IOApp}
+import cats.effect.{Clock, Concurrent, ExitCode, IO, IOApp}
 import cats.implicits._
 import fetch.{Data, DataSource, Fetch}
 
+import scala.concurrent.duration._
+
 object FetchNestedApplicativeExample extends IOApp {
 
-  private def fun1(id: Int) = IO.delay { println("hit1"); s"value1=$id".some }
-  private def fun2(id: Int) = IO.delay { println("hit2"); s"value2=$id".some }
-  private def fun3(id: Int) = IO.delay { println("hit3"); s"value3=$id".some }
+  private def fun1(id: Int) = IO.sleep(1000.millis).map { _ => println("hit1"); s"value1=$id".some }
+  private def fun2(id: Int) = IO.sleep(1000.millis).map { _ => println("hit2"); s"value2=$id".some }
+  private def fun3(id: Int) = IO.sleep(1000.millis).map { _ => println("hit3"); s"value3=$id".some }
 
   class DataSource1 extends Data[Int, String] {
     override def name: String               = "DataSource1"
@@ -56,11 +58,11 @@ object FetchNestedApplicativeExample extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-//      res <- Fetch.run(queryApplicative)
+      t1           <- Clock.apply[IO].monotonic
       (cache, res) <- Fetch.runCache(queryApplicative) // only 1 hit 1, but takes from cache
       _             = println(res)
-      resMonad     <- Fetch.run(queryMonad)
-      _             = println(resMonad)
+      t2           <- Clock.apply[IO].monotonic
+      _             = println(s"t=${(t2 - t1).toMillis} millis")
     } yield ExitCode.Success
 
 }
